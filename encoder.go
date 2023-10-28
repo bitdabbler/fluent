@@ -13,54 +13,58 @@ import (
 type EncoderPool struct {
 	p sync.Pool
 	*EncoderOptions
-	preludeLen int
+	prelude []byte
 }
 
 // NewEncoderPool creates a shared *Encoder pool that returns Encoders with the
 // log prelude, including the outer msgpack array and the tag, pre-encoded.
-func NewEncoderPool(tag string, opts *EncoderOptions) *EncoderPool {
+func NewEncoderPool(tag string, opts *EncoderOptions) (*EncoderPool, error) {
 	if opts == nil {
 		opts = DefaultEncoderOptions()
 	} else {
 		opts.resolve()
 	}
 
-	ep := &EncoderPool{EncoderOptions: opts}
+	p := &EncoderPool{EncoderOptions: opts}
 
-	ep.p = sync.Pool{
+	// pre-encode the msgpack array header and the tag
+	e := NewEncoder(opts.NewBufferCap)
+	var arrayLen int
+	switch opts.Mode {
+	case MessageMode:
+		arrayLen = 3
+		if opts.RequestACKs {
+			arrayLen++
+		}
+	case ForwardMode:
+		arrayLen = 2
+		if opts.RequestACKs {
+			arrayLen++
+		}
+	case PackedForwardMode, CompressedPackedForwardMode:
+		arrayLen = 3
+	}
+	if err := e.EncodeArrayLen(arrayLen); err != nil {
+		return nil, fmt.Errorf("failed to encode NewEncoder array len: %w", err)
+	}
+	if err := e.EncodeString(tag); err != nil {
+		InternalLogger().Printf("failed to encode NewEncoder tag: %v", err)
+	}
+	p.prelude = e.Bytes()
+
+	p.p = sync.Pool{
 		New: func() any {
 			enc := NewEncoder(opts.NewBufferCap)
-			enc.p = ep
 
-			// encode the prelude
-			var arrayLen int
-			switch opts.Mode {
-			case MessageMode:
-				arrayLen = 3
-				if opts.RequestACKs {
-					arrayLen++
-				}
-			case ForwardMode:
-				arrayLen = 2
-				if opts.RequestACKs {
-					arrayLen++
-				}
-			case PackedForwardMode, CompressedPackedForwardMode:
-				arrayLen = 3
-			}
-			if err := enc.EncodeArrayLen(arrayLen); err != nil {
-				InternalLogger().Printf("failed to encode NewEncoder array len: %v", err)
-			}
-			if err := enc.EncodeString(tag); err != nil {
-				InternalLogger().Printf("failed to encode NewEncoder tag: %v", err)
-			}
-			ep.preludeLen = enc.Len()
+			// copy in the prelude and point to pool (w/ encoding options)
+			enc.Write(p.prelude)
+			enc.p = p
 
 			return enc
 		},
 	}
 
-	return ep
+	return p, nil
 }
 
 // Get returns an Encoder with the prelude pre-rendered.
@@ -78,7 +82,7 @@ func (p *EncoderPool) Put(e *Encoder) {
 	}
 
 	// reset for the next usage
-	e.Buffer.Truncate(p.preludeLen)
+	e.Buffer.Truncate(len(p.prelude))
 	e.Encoder.Reset(e.Buffer)
 
 	// add back to the sync.Pool
@@ -114,9 +118,7 @@ func (e *Encoder) DeepCopy() *Encoder {
 		if e.Cap() > e2.Cap() {
 			e2.Grow(e.Cap())
 		}
-
-		// TODO: from offset
-		e2.Write(e.Bytes()[e.p.preludeLen:])
+		e2.Write(e.Bytes()[len(e.p.prelude):])
 		return e2
 	}
 

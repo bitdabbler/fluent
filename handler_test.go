@@ -11,7 +11,10 @@ import (
 func TestSlogger_SlogtestTestClient(t *testing.T) {
 
 	c := newTestClient()
-	p := NewEncoderPool(testTag, nil)
+	p, err := NewEncoderPool(testTag, nil)
+	if err != nil {
+		t.Fatalf("failed to get EncoderPool: %v", err)
+	}
 	h := NewHandlerCustom(c, p, &HandlerOptions{Verbose: true})
 
 	results := func() []map[string]any {
@@ -40,7 +43,10 @@ func TestSlogger_HandlesContextValues(t *testing.T) {
 		t.Fatalf("failed to create client: %v", err)
 	}
 
-	p := NewEncoderPool(testTag, nil)
+	p, err := NewEncoderPool(testTag, nil)
+	if err != nil {
+		t.Fatalf("failed to get EncoderPool: %v", err)
+	}
 	h := NewHandlerCustom(c, p, nil)
 	l := slog.New(h)
 

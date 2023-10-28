@@ -37,7 +37,10 @@ func TestClient_Send(t *testing.T) {
 	}
 
 	// encode directly
-	p := NewEncoderPool(m.Tag, nil)
+	p, err := NewEncoderPool(m.Tag, nil)
+	if err != nil {
+		t.Fatalf("failed to get EncoderPool: %v", err)
+	}
 	enc := p.Get()
 	err = enc.EncodeEventTime(m.Time)
 	err = errors.Join(err, enc.EncodeMap(m.Record))

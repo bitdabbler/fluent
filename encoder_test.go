@@ -20,9 +20,12 @@ func TestEncoder_DeepCopyRaw(t *testing.T) {
 }
 
 func TestEncoder_DeepCopyPooled(t *testing.T) {
-	p := NewEncoderPool("test-tag", nil)
+	p, err := NewEncoderPool("test-tag", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	e1 := p.Get()
-	if err := e1.EncodeString("this is just a random test string"); err != nil {
+	if err = e1.EncodeString("this is just a random test string"); err != nil {
 		t.Fatal(err)
 	}
 	e2 := e1.DeepCopy()

@@ -69,7 +69,12 @@ type Handler struct {
 // For complete control over the `fluent.Client` and the encoding options used
 // by the `fluent.Encoder`s, use the `NewHandlerCustom` constructor.
 func NewHandler(host, tag string, opts *HandlerOptions) (*Handler, error) {
-	p := NewEncoderPool(tag, nil)
+
+	// get the encoder pool with default encoding options
+	p, err := NewEncoderPool(tag, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create fluent.NewEncoderPool: %w", err)
+	}
 
 	// customize the client as noted
 	c, err := NewClient(host, &ClientOptions{

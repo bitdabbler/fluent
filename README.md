@@ -25,12 +25,12 @@ This hypothetical API (similar to those found in existing libraries) demonstrate
 
 For optimal efficiency, the `fluent.Client` sends directly from the buffers used by the `fluent.Handler`. This allows log handlers to serialize log values without first marshaling them into intermediate objects, avoiding redundant serialization steps and excess copying. 
 
-Examples of efficiency optimizations:
+Efficiency optimizations:
 
-- shared encoders/buffers
-- comprehensive use of resource pooling to minimize heap allocations
-- log preludes are only encoded once per pool, and only copied into each
-  `Encoder` in the pool, no matter how many times the Encoder is used
+- the `Handler` and the `Client` directly use the same encoders/buffers 
+- comprehensive resource pooling to minimize heap allocations
+- log preludes are encoded only once per pool, and are copied into each
+  `Encoder` only once, no matter how many times the Encoder is used
 - shared log attributes (`WithAttrs`) are encoded only once, no
   matter how many times they are used by the Handler
 - where map values have a length that can change, we
@@ -78,11 +78,17 @@ c, err := fluent.NewClient(fluentHost, &fluent.ClientOptions{
     DialTimeout: time.Seconds * 5,
     SkipEagerDial: true,
 })
+if err != nil {
+  log.Fatal(err)
+}
 
 // customize the EncoderPool
-p := fluent.NewEncoderPool(fluentTag, &fluent.EncoderOptions{
+p, err := fluent.NewEncoderPool(fluentTag, &fluent.EncoderOptions{
     UseCoarseTimestamps: true,
 })
+if err != nil {
+  log.Fatal(err)
+}
 
 // customize the Handler
 h := fluent.NewHandlerCustom(c, p, &fluent.HandlerOptions{
@@ -164,7 +170,6 @@ h.Shutdown(timeoutCtx)
 
 #### Configuration options
 
-
 | Option               | Type          | Default                          |
 | -------------------- | ------------- | -------------------------------- |
 | `Port`               | int           | 24224                            |
@@ -180,17 +185,15 @@ h.Shutdown(timeoutCtx)
 | `MaxWriteTries`      | int           | 3                                |
 | `Verbose`            | bool          | false                            |
 
-
 #### Concurrency
 
 Use the concurrency settings to enable the Client spin up mutliple workers internally. The workers maintain completely independent connections to the server, for thread safety with minimal locking. The default concurrency level is 1, ensuring that all logs are written out serially.
-
 
 ### fluent.Encoder(Pool)
 
 #### Constructors
 
-- `NewEncoderPool(tag string, opts *EncoderOptions) *EncoderPool`
+- `NewEncoderPool(tag string, opts *EncoderOptions) (*EncoderPool, error)`
 - `NewEncoder(bufferCap int) *Encoder`
 
 #### Configuration Options
@@ -238,4 +241,3 @@ However, the main use case for Attr rewriting is to redact sensitive values or c
 - [Fluent Protocol v1](https://github.com/fluent/fluent/wiki/Forward-Protocol-Specification-v1)
 - [MsgPack](https://github.com/msgpack/msgpack/blob/master/spec.md)
 - [Go's slog.Handler interface](https://github.com/golang/go/blob/master/src/log/slog/handler.go)
-

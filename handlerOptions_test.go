@@ -8,8 +8,10 @@ import (
 
 func TestWithSourceInfo(t *testing.T) {
 	c := newTestClient()
-	p := NewEncoderPool(testTag, nil)
-
+	p, err := NewEncoderPool(testTag, nil)
+	if err != nil {
+		t.Fatalf("failed to get EncoderPool: %v", err)
+	}
 	h := NewHandlerCustom(c, p, nil)
 
 	// check config
@@ -44,8 +46,10 @@ func TestWithSourceInfo(t *testing.T) {
 
 func TestHandler_LogLevelOption(t *testing.T) {
 	c := newTestClient()
-	p := NewEncoderPool(testTag, nil)
-
+	p, err := NewEncoderPool(testTag, nil)
+	if err != nil {
+		t.Fatalf("failed to get EncoderPool: %v", err)
+	}
 	h := NewHandlerCustom(c, p, nil)
 
 	// check config
@@ -80,8 +84,10 @@ func TestHandler_LogLevelOption(t *testing.T) {
 
 func TestHandler_TimeFormatOption(t *testing.T) {
 	c := newTestClient()
-	p := NewEncoderPool(testTag, nil)
-
+	p, err := NewEncoderPool(testTag, nil)
+	if err != nil {
+		t.Fatalf("failed to get EncoderPool: %v", err)
+	}
 	h := NewHandlerCustom(c, p, nil)
 
 	// check config
