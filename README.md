@@ -6,6 +6,13 @@ A full Fluent logging stack in Go, including
 - `fluent.Client` - manages connections and writing to the Fluent server
 - `fluent.Encoder` - provides a common encoder/buffer, bridging the `Handler` and `Client` 
 
+```go
+import (
+    // ...
+    github.com/bitdabbler/fluent
+)
+```
+
 ## Purpose
 
 Why write a yet another Fluent client and yet another structured log handler? In short, efficiency.
@@ -40,13 +47,6 @@ Efficiency optimizations:
   its own `Attr`s to get serialized into the parent's scope)
 
 ## Basic Usage
-
-```go
-import (
-    // ...
-    github.com/bitdabbler/fluent
-)
-```
 
 ```go
 h, err := fluent.NewHandler(fluentHost, fluentTag, nil)
