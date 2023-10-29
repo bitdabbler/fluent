@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"log/slog"
 	"math"
 	"runtime"
@@ -192,17 +191,11 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 	// get buffer/encoder into which we directly serialize attrs
 	enc := h.logPool.Get()
 
-	// TODO:
-	log.Printf("length after time added: %d", enc.Len())
-
 	// encode the log timestamp
 	err := enc.EncodeEventTime(t)
 	if err != nil {
 		return fmt.Errorf("failed to Handle slog request: %w", err)
 	}
-
-	// TODO:
-	log.Printf("length after time added: %d", enc.Len())
 
 	// copy so we don't affect future calls
 	scopes := append(h.scopes[:0:0], h.scopes...)
@@ -326,9 +319,6 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 	if errs.err != nil {
 		InternalLogger().Printf("encoding errors in Handle:\n%v", errs.err)
 	}
-
-	// TODO:
-	log.Printf("length before sending: %d", enc.Len())
 
 	h.client.Send(enc)
 
