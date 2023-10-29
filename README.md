@@ -144,13 +144,13 @@ The `Shutdown` method calls `Client.Shutdown()`. That immediately closes the sen
 ```go
 // we: 
 //   - are in a higher level graceful shutdown function
-//   - used slog.SetDefault(slogger) to ensure it was used globally
+//   - used slog.SetDefault(h) to ensure it was used globally
 
 // create a new Handler that only logs locally to stdout
 l := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 // atomically switch over to that logger, so that no subsequent
-// logging calls will use the `slogger` instance
+// logging calls will use the `Handler` instance
 slog.SetDefault(l)
 
 // now it is safe to shutdown the Handler instance's Client
