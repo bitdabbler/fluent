@@ -76,10 +76,10 @@ func NewHandler(host, tag string, opts *HandlerOptions) (*Handler, error) {
 	}
 
 	// customize the client as noted
-	c, err := NewClient(host, &ClientOptions{
-		Concurrency: 2,
-		QueueDepth:  16,
-	})
+	cOpts := DefaultClientOptions()
+	cOpts.Concurrency = 2
+	cOpts.QueueDepth = 16
+	c, err := NewClient(host, cOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create fluent.NewClient: %w", err)
 	}

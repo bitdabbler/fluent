@@ -134,7 +134,7 @@ func (o *ClientOptions) resolve() {
 
 	// must be positive
 	if o.MaxWriteTries < 1 {
-		tell("", o.MaxWriteTries, defaultWriteTries)
+		tell("MaxWriteTries", o.MaxWriteTries, defaultWriteTries)
 		o.MaxWriteTries = defaultWriteTries
 	}
 
