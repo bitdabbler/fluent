@@ -9,7 +9,7 @@ A full Fluent logging stack in Go, including
 ```go
 import (
     // ...
-    github.com/bitdabbler/fluent
+    "github.com/bitdabbler/fluent"
 )
 ```
 
