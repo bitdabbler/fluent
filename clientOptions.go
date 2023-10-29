@@ -92,52 +92,50 @@ func DefaultClientOptions() *ClientOptions {
 
 // resolve ensures that all options have valid values.
 func (o *ClientOptions) resolve() {
-	var coerced bool
+	tell := func(field string, from, to any) {
+		InternalLogger().Printf("%s coerced to valid value: %v -> %v", field, from, to)
+	}
 
 	// constrain to valid range
 	if o.Port < 1024 || o.Port > 65535 {
+		tell("Port", o.Port, defaultPort)
 		o.Port = defaultPort
-		coerced = true
 	}
 
 	// only [tcp|tls|udp], per Fluent spec
 	if o.Network != "tcp" && o.Network != "tls" && o.Network != "udp" {
+		tell("Network", o.Network, defaultNetwork)
 		o.Network = defaultNetwork
-		coerced = true
 	}
 
 	// must be positive
 	if o.DialTimeout < 1 {
+		tell("DialTimeout", o.DialTimeout, defaultDialTimeout)
 		o.DialTimeout = defaultDialTimeout
-		coerced = true
 	}
 
 	// can be negative (infinity) or positive, but not 0
 	if o.MaxEagerDialTries == 0 {
+		tell("MaxEagerDialTries", o.MaxEagerDialTries, defaultEagerDialTries)
 		o.MaxEagerDialTries = defaultEagerDialTries
-		coerced = true
 	}
 
 	// must have at least one worker
 	if o.Concurrency < 1 {
+		tell("Concurrency", o.Concurrency, defaultConcurrency)
 		o.Concurrency = defaultConcurrency
-		coerced = true
 	}
 
 	// can be negative (infinity) or positive, but not 0
 	if o.WriteTimeout == 0 {
+		tell("WriteTimeout", o.WriteTimeout, defaultWriteTimeout)
 		o.WriteTimeout = defaultWriteTimeout
-		coerced = true
 	}
 
 	// must be positive
 	if o.MaxWriteTries < 1 {
+		tell("", o.MaxWriteTries, defaultWriteTries)
 		o.MaxWriteTries = defaultWriteTries
-		coerced = true
-	}
-
-	if coerced {
-		InternalLogger().Printf("invalid fields coerced to defaults: resolved ClientOptions: %+v", o)
 	}
 
 }
