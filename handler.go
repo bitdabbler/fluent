@@ -447,6 +447,7 @@ func (h *Handler) encodeAttr(enc *Encoder, attr slog.Attr) (nEncoded int, err er
 	// omit this if all attrs omitted and we have an empty group now
 	if nAdded == 0 {
 		enc.Buffer.Truncate(gIdx)
+		return 0, nil
 	}
 
 	// we have some attrs, but not the number expected
