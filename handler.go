@@ -389,8 +389,6 @@ func (h *Handler) encodeAttr(enc *Encoder, attr slog.Attr) (nEncoded int, err er
 		return 1, errs.err
 	}
 
-	// differs from WithGroup, with variable size; this is for static groups:
-	// slog.Group attr;
 	//   example:
 	//   logger.LogAttrs(level, msg, slog.Group("s",
 	//       slog.Int("a", 1),
@@ -399,10 +397,7 @@ func (h *Handler) encodeAttr(enc *Encoder, attr slog.Attr) (nEncoded int, err er
 	gAttrs := v.Group()
 	gLen := len(gAttrs)
 
-	// rule: ignore empty groups entirely (eject before encoding key)
-	if gLen == 0 {
-		return 0, nil
-	}
+	// rule: ignore empty groups; encorced by Group constructor
 
 	// rule: inline attrs if key is empty
 	if len(k) == 0 {
@@ -414,10 +409,6 @@ func (h *Handler) encodeAttr(enc *Encoder, attr slog.Attr) (nEncoded int, err er
 		return nEncoded, errs.err
 	}
 
-	// track where the group starts, in case we end up skipping every attr,
-	// making it empty and therefore requiring we omit it entirely
-	gIdx := enc.Buffer.Len()
-
 	// encode group key
 	errs.join("attr key", enc.EncodeString(k))
 
@@ -428,29 +419,23 @@ func (h *Handler) encodeAttr(enc *Encoder, attr slog.Attr) (nEncoded int, err er
 	// encode map len; allocate 2 bytes; handles cases where length expands when
 	// child attrs are groups with zero-length keys, resulting in grandchildren
 	// getting inlined; we waste 1 byte when the final length is less than 16,
-	// but this allows us to update the length without any copying
+	// but this allows us to update the length without any look-ahead or copying
 	errs.join("map len header for group: "+k, h.encodeMap16Len(enc, gLen))
 
 	nAdded := 0
 	for i := 0; i < gLen; i++ {
 		// { k0: <- current scope
 		//       {k1:
-		//           {kv3, kv4, kv5},
-		//       {kv2}
+		//           {attr3, attr4},
+		//       {attr2}
 		// }
-		// if k1 is empty, then attrs kv3, kv4, and kv5 become part of g0
+		// k1 == "" => {k0: attr3, attr4, attr2}
 		n, e := h.encodeAttr(enc, gAttrs[i])
 		nAdded += n
 		errs.join("attr value for group with key: "+k, e)
 	}
 
-	// omit this if all attrs omitted and we have an empty group now
-	if nAdded == 0 {
-		enc.Buffer.Truncate(gIdx)
-		return 0, nil
-	}
-
-	// we have some attrs, but not the number expected
+	// adjust header if the number of attrs increased because of inlining
 	if nAdded != gLen {
 		adjustMapLenHeader(enc.Buffer.Bytes(), gLenIdx, gLen, nAdded)
 	}
