@@ -39,8 +39,8 @@ func NewClient(host string, opts *ClientOptions) (*Client, error) {
 }
 
 // NewClientContext creates a new Fluent client and connects to the Fluent
-// server immediately, returning an error if it is unable to establish an
-// initial connection. Context is passed to `Connect()`. This can be used to
+// server immediately, returning an error if it is unable to establish the
+// initial connections. The Context is passed to `Connect()` can be used to
 // cancel the `Connect` operation, or set a global deadline for connecting.
 func NewClientContext(ctx context.Context, host string, opts *ClientOptions) (*Client, error) {
 
@@ -87,6 +87,8 @@ func newClient(host string, opts *ClientOptions) (*Client, error) {
 		wg:      &sync.WaitGroup{},
 		sendCh:  make(chan *Encoder, opts.QueueDepth),
 	}
+
+	c.debug("starting Client with the resolved ClientOptions: %+v", c.opts)
 
 	// compose addr to format used by dialers
 	addr := fmt.Sprintf("%s:%d", host, opts.Port)
