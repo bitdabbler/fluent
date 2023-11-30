@@ -10,23 +10,17 @@ import "time"
 // options used for the Handler, which uses the struct pointer approach to be
 // consistent with the `HandlerOptions` used by log/slog.
 type ClientOptions struct {
-	// Port of the Fluent server. The default is 24224.
-	Port int
 
 	// Network protocol used to communicate with the server. Fluent protocol
 	// says "protocol [enum: tcp/udp/tls]". The default is "tcp".
 	//   ref: https://docs.fluent.org/configuration/transport-section
 	Network string
 
-	// InsecureSkipVerify controls whether a client verifies the server's
-	// certificate chain and host name when using TLS.
-	InsecureSkipVerify bool
+	// Port of the Fluent server. The default is 24224.
+	Port int
 
 	// DialTimeout sets the timeout for dialing the server. The default is 30s.
 	DialTimeout time.Duration
-
-	// SkipEagerDial enables returning clients that dial the server lazily.
-	SkipEagerDial bool
 
 	// MaxEagerDialTries limits the maximum number of times client workers will
 	// try to connect to establish an initial the server before the Client is
@@ -47,13 +41,6 @@ type ClientOptions struct {
 	// buffer space increases. The default depth is 0 (synchronous writes).
 	QueueDepth int
 
-	// DropIfQueueFull controls how write requests are handled when the
-	// writeQueue is full. The default is to block the log handler until the
-	// queue channel can receive the log message. With this option enabled,
-	// overflow requests will get dropped to the floor. This enables a tradeoff
-	// between log completeness and system performance predictability.
-	DropIfQueueFull bool
-
 	// WriteTimeout controls the timeout for each Write to the server. If
 	// WriteTimeout < 0, then no timeout will be set. The default is 10 seconds.
 	WriteTimeout time.Duration
@@ -62,6 +49,20 @@ type ClientOptions struct {
 	// a message before inferring a broken pipe, tearing down the connection,
 	// and establishing a new one. This must be > 0. The default is 3.
 	MaxWriteTries int
+
+	// InsecureSkipVerify controls whether a client verifies the server's
+	// certificate chain and host name when using TLS.
+	InsecureSkipVerify bool
+
+	// SkipEagerDial enables returning clients that dial the server lazily.
+	SkipEagerDial bool
+
+	// DropIfQueueFull controls how write requests are handled when the
+	// writeQueue is full. The default is to block the log handler until the
+	// queue channel can receive the log message. With this option enabled,
+	// overflow requests will get dropped to the floor. This enables a tradeoff
+	// between log completeness and system performance predictability.
+	DropIfQueueFull bool
 
 	// Verbose controls whether debug logs are written to the internal logger.
 	Verbose bool

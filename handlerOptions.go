@@ -10,9 +10,6 @@ import (
 // NB: The struct pointer options approach is used to be consistent with the
 // approach used in the standard library for `HandlerOptions`.
 type HandlerOptions struct {
-	// AddSource causes the handler to compute the source code position of the
-	// log statement and add a SourceKey attribute to the output.
-	AddSource bool
 
 	// Level reports the minimum record level that will be logged. The handler
 	// discards records with lower levels. If Level is nil, the handler assumes
@@ -25,6 +22,10 @@ type HandlerOptions struct {
 	// timestamp for the log itself, in the metadata, which is defined by the
 	// Fluent protocol specification. The default is time.RFC3339Nano.
 	TimeFormat string
+
+	// AddSource causes the handler to compute the source code position of the
+	// log statement and add a SourceKey attribute to the output.
+	AddSource bool
 
 	// Verbose controls whether debug logs are written to the internal logger.
 	Verbose bool

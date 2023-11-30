@@ -13,12 +13,12 @@ import (
 )
 
 type worker struct {
+	conn net.Conn
 	*ClientOptions
-	id     int
-	conn   net.Conn
-	addr   string
 	wg     *sync.WaitGroup
 	sendCh chan *Encoder
+	addr   string
+	id     int
 }
 
 // Client represents a Fluent client. If using multiple concurrent client
@@ -26,10 +26,10 @@ type worker struct {
 // worker maintains an independent connection to the server.
 type Client struct {
 	opts    *ClientOptions
-	host    string
-	workers []*worker
 	wg      *sync.WaitGroup
 	sendCh  chan *Encoder
+	host    string
+	workers []*worker
 }
 
 // New creates a new Fluent client and connects to the Fluent server
